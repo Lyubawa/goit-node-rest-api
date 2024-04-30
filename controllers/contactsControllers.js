@@ -1,6 +1,13 @@
-import contactsService from "../services/contactsServices.js";
+import contactsService from "../services/contactsServices";
 
-export const getAllContacts = (req, res) => {};
+export const getAllContacts = async (req, res, next) => {
+  try {
+    const contacts = await contactsService.listContacts();
+    res.status(200).json(contacts);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const getOneContact = (req, res) => {};
 

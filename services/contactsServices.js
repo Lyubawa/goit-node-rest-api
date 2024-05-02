@@ -53,14 +53,29 @@ async function removeContact(contactId) {
   return removedContact;
 }
 
-async function updateContact(contactId, data) {
+async function updateContact(id, data) {
   const contacts = await readContacts();
-  const index = contacts.findIndex((contact) => contact.id === contactId);
+  const index = contacts.findIndex((contact) => contact.id === id);
 
   if (index === -1) {
     return null;
   }
-  contacts[index] = { contactId, ...data };
+
+  if (data.name !== undefined) {
+    contacts[index].name = data.name;
+  }
+
+  if (data.email !== undefined) {
+    contacts[index].email = data.email;
+  }
+
+  if (data.phone !== undefined) {
+    contacts[index].phone = data.phone;
+  }
+
+  await writeContacts(contacts);
+
+  return contacts[index];
 }
 
 export default {

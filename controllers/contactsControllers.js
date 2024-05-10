@@ -13,7 +13,7 @@ export const getAllContacts = async (req, res, next) => {
   }
 };
 
-export const getOneContact = async (req, res) => {
+export const getOneContact = async (req, res, next) => {
   const { id } = req.params;
   try {
     const oneContact = await Contact.findById(id);
@@ -26,7 +26,7 @@ export const getOneContact = async (req, res) => {
   }
 };
 
-export const deleteContact = async (req, res) => {
+export const deleteContact = async (req, res, next) => {
   const { id } = req.params;
   try {
     const deleteContact = await Contact.findByIdAndDelete(id);

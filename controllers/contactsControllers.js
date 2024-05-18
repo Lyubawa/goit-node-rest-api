@@ -5,8 +5,9 @@ import {
 } from "../schemas/contactsSchemas.js";
 
 export const getAllContacts = async (req, res, next) => {
+  console.log(req.user);
   try {
-    const contacts = await Contact.find();
+    const contacts = await Contact.find({ owner: req.user.id });
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
@@ -16,10 +17,12 @@ export const getAllContacts = async (req, res, next) => {
 export const getOneContact = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const oneContact = await Contact.findById(id);
+    const oneContact = await Contact.findOne({ _id: id, owner: req.user.id });
+
     if (oneContact === null) {
-      res.status(404).json({ message: "Not found" });
+      return res.status(404).json({ message: "Not found" });
     }
+
     res.status(200).json(oneContact);
   } catch (error) {
     next(error);
@@ -29,7 +32,10 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const deleteContact = await Contact.findByIdAndDelete(id);
+    const deleteContact = await Contact.findOneAndDelete({
+      _id: id,
+      owner: req.user.id,
+    });
     if (deleteContact === null) {
       res.status(404).json({ message: "Not found" });
     }
@@ -41,8 +47,19 @@ export const deleteContact = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   const { name, email, phone } = req.body;
+  const contact = {
+    name,
+    email,
+    phone,
+    owner: req.user.id,
+  };
+
+  const { error } = createContactSchema.validate({ name, email, phone });
+  if (error) {
+    return res.status(400).json({ message: error.message });
+  }
   try {
-    const addContact = await Contact.create({ name, email, phone });
+    const addContact = await Contact.create(contact);
     res.status(201).json(addContact);
   } catch (error) {
     next(error);
@@ -62,9 +79,16 @@ export const updateContact = async (req, res, next) => {
     return res.status(400).json({ message: error.message });
   }
   try {
-    const updateContact = await Contact.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    const updateContact = await Contact.findOneAndUpdate(
+      {
+        _id: id,
+        owner: req.user.id,
+      },
+      req.body,
+      {
+        new: true,
+      }
+    );
     if (updateContact === null) {
       res.status(404).json({ message: "Not found" });
     }
@@ -78,8 +102,11 @@ export const updateStatusContact = async (req, res, next) => {
   const { id } = req.params;
   const { favorite } = req.body;
   try {
-    const updateStatusContact = await Contact.findByIdAndUpdate(
-      id,
+    const updateStatusContact = await Contact.findOneAndUpdate(
+      {
+        _id: id,
+        owner: req.user.id,
+      },
       { favorite },
       {
         new: true,

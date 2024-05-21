@@ -5,7 +5,9 @@ import cors from "cors";
 import mongoose from "mongoose";
 import contactsRouter from "./routes/contactsRouter.js";
 import usersRouter from "./routes/authRouter.js";
+import avatarRouter from "./routes/users.js";
 import authMiddleware from "./middleware/authMiddleware.js";
+import path from "node:path";
 
 const DB_URI = process.env.DB_URI;
 
@@ -23,8 +25,11 @@ app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());
 
+app.use("/avatars", express.static(path.resolve("public/avatars")));
+
 app.use("/api/contacts", authMiddleware, contactsRouter);
 app.use("/users", usersRouter);
+app.use("/users", authMiddleware, avatarRouter);
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });

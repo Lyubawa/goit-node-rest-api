@@ -132,4 +132,4 @@ dist
 tmp/*
 !tmp/.gitkeep
 public/avatars/*
-!piblic/avatars/.gitkeep
+!public/avatars/.gitkeep

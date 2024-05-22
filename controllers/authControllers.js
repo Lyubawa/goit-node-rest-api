@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/users.js";
 import { registerUserSchema, loginUserSchema } from "../schemas/userSchema.js";
+import gravatar from "gravatar";
 
 export const register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -19,10 +20,12 @@ export const register = async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const userAvatar = gravatar.url(email);
 
     await User.create({
       email: email,
       password: passwordHash,
+      avatarURL: userAvatar,
     });
 
     res.status(201).json({ message: "Registration successful" });

@@ -1,8 +1,10 @@
+import crypto from "node:crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/users.js";
 import { registerUserSchema, loginUserSchema } from "../schemas/userSchema.js";
 import gravatar from "gravatar";
+import mail from "../mail.js";
 
 export const register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -21,11 +23,21 @@ export const register = async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const userAvatar = gravatar.url(email);
+    const verificationToken = crypto.randomUUID();
 
     await User.create({
-      email: email,
+      email,
       password: passwordHash,
       avatarURL: userAvatar,
+      verificationToken,
+    });
+
+    mail.sendMail({
+      to: email,
+      from: "lyubawa81@ukr.net",
+      subject: "Welcome to your contacts!",
+      html: `To confirm your email please click to the link <a href="http://localhost:3000/users/verify/${verificationToken}">Link</a>`,
+      text: `To confirm your email please open the link http://localhost:3000/users/verify/${verificationToken}`,
     });
 
     res.status(201).json({ message: "Registration successful" });
@@ -55,6 +67,10 @@ export const login = async (req, res, next) => {
     if (isMatch === false) {
       console.log("Password");
       return res.status(401).json({ message: "Email or password is wrong" });
+    }
+
+    if (user.verify === false) {
+      return res.status(401).json({ message: "Please verify your email" });
     }
 
     const token = jwt.sign(
